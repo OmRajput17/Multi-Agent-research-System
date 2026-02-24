@@ -1,0 +1,15 @@
+ddgs
+langgraph
+langchain
+langchain-community
+langchain-groq
+tavily-python
+arxiv
+duckduckgo-search
+chromadb
+streamlit
+fastapi
+uvicorn
+langsmith
+python-dotenv
+requests

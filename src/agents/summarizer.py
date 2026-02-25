@@ -35,7 +35,7 @@ class SummarizerAgent:
         })
 
         # Step 3: Extract the citation URLs
-        citations = [r['url'] for r in state['filtered_results']]
+        citations = list(dict.fromkeys(r['url'] for r in state['filtered_results']))
 
         return {
             **state,

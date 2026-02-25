@@ -42,7 +42,7 @@ class ReportWriterAgent:
             "query": state['query'],
             "summary": state["summary"],
             "fact_check": fact_check_text,
-            "references ": references 
+            "references": references
         })
 
         return {

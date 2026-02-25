@@ -1,4 +1,4 @@
-from typing import TypedDict, Annotated, List, Dict
+from typing import TypedDict, Annotated, List, Dict, Literal
 from langgraph.graph.message import add_messages
 
 class ResearchState(TypedDict):
@@ -12,4 +12,4 @@ class ResearchState(TypedDict):
     citations: List[str] ## Sources url
     iteration: int ## Loop guard counter
     user_feedback: str ## Human in the loop input
-    route: str ## academic / mixed / web
+    route: Literal['academic', 'web', 'mixed'] ## academic / mixed / web

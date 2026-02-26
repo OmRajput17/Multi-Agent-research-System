@@ -10,6 +10,10 @@ graph = build_graph()
 class QueryRequest(BaseModel):
     query: str
 
+@app.get("/")
+def root():
+    return {"message": "Multi-Agent Research Assistant API", "docs": "/docs"}
+
 @app.get("/health")
 def health():
     return {"status": "ok"}

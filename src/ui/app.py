@@ -48,7 +48,7 @@ st.markdown("""
 st.markdown('<div class="main-header">Research Assistant</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Multi-Agent AI Research Pipeline</div>', unsafe_allow_html=True)
 
-API_URL = "http://localhost:8000"
+API_URL = "https://omrajput-research-assistant.hf.space"
 
 # Initialize chat history
 if "messages" not in st.session_state:

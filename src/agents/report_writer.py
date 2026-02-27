@@ -15,7 +15,7 @@ class ReportWriterAgent:
             Fact-Check Results:
             {fact_check}
 
-            References:
+            References (use these inline):
             {references}
 
             Write a thorough research report in markdown with these sections:
@@ -28,9 +28,12 @@ class ReportWriterAgent:
             ## Limitations & Future Research
             ## References
 
-            IMPORTANT: Be detailed and thorough. Each section should have substantial content.
-            Use the fact-check scores to highlight which findings are most reliable.
-            Include numbered references at the end."""
+            IMPORTANT CITATION RULES:
+            - Place citations INLINE next to the claim they support, like: "Transformers use attention mechanisms [1]"
+            - Use the reference numbers [1], [2], etc. that match the References list
+            - Every major claim MUST have an inline citation
+            - Still include a numbered References section at the end for the full URLs
+            - Be detailed and thorough. Each section should have substantial content."""
         )
         self.chain = self.prompt | self.llm
 

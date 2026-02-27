@@ -12,9 +12,9 @@ async def parallel_search_agent(state: ResearchState) -> ResearchState:
     tasks = []
 
     for q in queries:
-        tasks.append(asyncio.to_thread(tools.tavily_search, q))
-        tasks.append(asyncio.to_thread(tools.arxiv_search, q))
-        tasks.append(asyncio.to_thread(tools.ddgs_search, q))
+        tasks.append(asyncio.to_thread(tools.tavily_search, q, 7))
+        tasks.append(asyncio.to_thread(tools.arxiv_search, q, 7))
+        tasks.append(asyncio.to_thread(tools.ddgs_search, q, 7))
         # tasks.append(asyncio.to_thread(tools.semantic_scholar_search, q))
 
     all_results = await asyncio.gather(*tasks, return_exceptions=True)

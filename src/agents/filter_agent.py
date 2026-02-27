@@ -26,7 +26,7 @@ class FilterAgent:
 
         # Step 1: Format all results as numbered list
         results_text = '\n\n'.join([
-            f"[{i+1}] {r['title']}\n{r['content'][:300]}"
+            f"[{i+1}] {r['title']}\n{r['content'][:500]}"
             for i, r in enumerate(results)
         ])
 

@@ -24,7 +24,7 @@ class SummarizerAgent:
     def summarize(self, state: ResearchState) -> ResearchState:
         # Step 1: Format filtered results as numbered context
         context = '\n\n'.join([
-            f'[{i+1}] {r["title"]}\n{r["content"][:800]}'
+            f'[{i+1}] {r["title"]}\n{r["content"][:1500]}'
             for i, r in enumerate(state['filtered_results'])
         ])
 

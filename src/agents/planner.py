@@ -8,11 +8,18 @@ class PlannerAgent:
     def __init__(self):
         self.llm = LLMConfig().get_llm()
         self.prompt = """
-            You are a research planner. Given the query: {query}
-            Break it into 3-5 specific sub-questions for research.
-            Also classify the query route as: academic, web, or mixed.
-            Return ONLY valid JSON in this exact format:
-            {{"sub_questions": ["q1", "q2", "q3"], "route": "mixed"}}
+                You are a research planner. Given a user query, do two things:
+                1. Break the query into 3-5 specific, detailed sub-questions that would help thoroughly research the topic. Make sub-questions targeted and researchable.
+
+                2. Classify the search route based on these rules:
+                - "academic" → scientific concepts, algorithms, papers, technical mechanisms (e.g., "How does attention work in transformers?")
+                - "web" → current events, tutorials, comparisons, trends, opinions (e.g., "Best AI tools in 2024")
+                - "mixed" → ONLY when the query genuinely needs both academic depth AND current web info (e.g., "Impact of quantum computing on cryptography")
+
+                Query: {query}
+
+                Return ONLY valid JSON:
+                {{"sub_questions": ["detailed question 1", "detailed question 2", "detailed question 3"], "route": "academic"}}
         """
 
         self.prompt = ChatPromptTemplate.from_template(self.prompt)

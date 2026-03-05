@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from src.graphs.research_graph import build_graph
 import asyncio
@@ -51,12 +52,32 @@ async def research(request: QueryRequest):
         "route": "mixed"
     }
 
-    result = await get_graph().ainvoke(initial_state)
+    try:
+        result = await get_graph().ainvoke(initial_state)
 
-    return {
-        "report": result["final_report"],
-        "citations": result["citations"],
-        "fact_check": result["fact_check"],
-        "route": result["route"],
-        "iterations": result["iteration"]
-    }
+        return {
+            "report": result["final_report"],
+            "citations": result["citations"],
+            "fact_check": result["fact_check"],
+            "route": result["route"],
+            "iterations": result["iteration"]
+        }
+    except Exception as e:
+        error_msg = str(e)
+        # Handle Groq rate limit errors
+        if "rate_limit" in error_msg.lower() or "429" in error_msg:
+            return JSONResponse(
+                status_code=429,
+                content={
+                    "error": "rate_limit",
+                    "message": "⏳ API rate limit reached. The free Groq tier allows 100K tokens/day. Please try again in a few minutes or upgrade at console.groq.com"
+                }
+            )
+        # Handle all other errors
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "internal",
+                "message": f"Something went wrong: {error_msg[:200]}"
+            }
+        )

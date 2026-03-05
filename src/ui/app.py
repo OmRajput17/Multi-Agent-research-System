@@ -125,6 +125,16 @@ if query := st.chat_input("Ask a research question..."):
                     json={"query": query},
                     timeout=300
                 )
+
+                # Handle API errors (rate limit, server errors)
+                if response.status_code != 200:
+                    error_data = response.json()
+                    if response.status_code == 429:
+                        st.warning("⏳ **Rate limit reached.** The free Groq tier allows 100K tokens/day. Please wait a few minutes and try again.")
+                    else:
+                        st.error(f"❌ {error_data.get('message', 'Something went wrong')}")
+                    return
+
                 data = response.json()
 
                 # Add assistant message to history FIRST

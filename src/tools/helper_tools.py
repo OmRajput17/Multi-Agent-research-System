@@ -1,6 +1,6 @@
 from tavily import TavilyClient
 import arxiv
-from ddgs import DDGS
+from duckduckgo_search import DDGS
 import requests
 import os
 from dotenv import load_dotenv

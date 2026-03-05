@@ -2,6 +2,7 @@ from src.utils.get_llm import LLMConfig
 from src.graphs.state import ResearchState
 from langchain_core.prompts import ChatPromptTemplate
 import json
+import re
 
 class FactCheckerAgent:
     def __init__(self):
@@ -25,6 +26,14 @@ class FactCheckerAgent:
 
         self.extract_chain = self.extract_prompt | self.llm
         self.verify_chain = self.verify_prompt |  self.llm
+
+    def _parse_score(self, text: str) -> float:
+        """Robustly extract a float score from LLM response text."""
+        # Try to find a decimal number between 0 and 1
+        match = re.search(r'\b(0(?:\.\d+)?|1(?:\.0+)?)\b', text.strip())
+        if match:
+            return round(float(match.group(1)), 2)
+        return 0.5  # default fallback
 
     def fact_check(self, state: ResearchState) -> ResearchState:
 
@@ -54,12 +63,11 @@ class FactCheckerAgent:
                     "sources": sources
                 })
 
-                score = float(response.content.strip())
-                fact_check[claim] = round(score, 2)
-            except (ValueError, Exception):
+                score = self._parse_score(response.content)
+                fact_check[claim] = score
+            except Exception:
                 fact_check[claim] = 0.5
             
         return {
-            **state,
             'fact_check': fact_check
         }

@@ -9,3 +9,10 @@ build/
 venv/
 # Secrets
 .env
+# Test artifacts
+test_report.md
+# IDE
+.vscode/
+.idea/
+# Docs
+*.docx

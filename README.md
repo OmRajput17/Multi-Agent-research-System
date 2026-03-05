@@ -1,19 +1,37 @@
 ---
-title: Multi-Agent Research Assistant
+title: Research Assistant
 emoji: 🔬
-colorFrom: purple
-colorTo: blue
+colorFrom: indigo
+colorTo: purple
 sdk: docker
-app_port: 8000
+app_port: 7860
 pinned: false
 ---
 
-# Multi-Agent Research Assistant
+# 🔬 Multi-Agent Research Assistant
 
-AI-powered research pipeline using LangGraph with multiple specialized agents:
-- **Planner** — breaks queries into sub-questions
-- **Search** — async parallel search across Tavily, arxiv, DuckDuckGo
-- **Filter** — LLM-based batch relevance scoring
-- **Summarizer** — synthesizes findings with citations
-- **Fact-Checker** — cross-references claims against sources
-- **Report Writer** — generates structured markdown reports
+An AI-powered research pipeline that uses multiple specialized agents to search, filter, summarize, fact-check, and generate comprehensive research reports.
+
+## Features
+
+- **Multi-source search** — Tavily, arXiv, DuckDuckGo
+- **Smart routing** — Academic, web, mixed, or general conversation
+- **Fact-checking** — Every claim verified against sources with confidence scores
+- **Professional reports** — Publication-ready markdown with inline citations
+- **Iterative refinement** — Loops up to 3x if fact-check scores are low
+
+## Architecture
+
+```
+User Query → Planner → Router → Search Agents → Filter → Summarizer → Fact-Checker → Report Writer
+                                                                              ↑                |
+                                                                              └── (if low) ────┘
+```
+
+## Tech Stack
+
+- **LangGraph** — Multi-agent orchestration
+- **Groq (LLaMA 3.3 70B)** — LLM inference
+- **FastAPI** — Backend API
+- **Streamlit** — Frontend UI
+- **Tavily / arXiv / DuckDuckGo** — Search tools

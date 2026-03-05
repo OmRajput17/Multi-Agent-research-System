@@ -1,9 +1,17 @@
+"""
+WARNING: This module is NOT used in the graph. It is dead code kept for reference only.
+- The `human_review` function is never added as a node in research_graph.py.
+- It uses `input()` which blocks and will crash in a web API (FastAPI/Streamlit) context.
+- To properly implement HITL, use LangGraph's `interrupt()` / checkpointer pattern instead.
+"""
 from src.graphs.state import ResearchState
 
 def human_review(state: ResearchState) -> ResearchState:
     """Pauses the graph for human feedback.
-    In production, this is handled by the API (user submits feedback via frontend).
-    For testing, we use input() to simulate."""
+    
+    NOTE: This function is NOT connected to the graph (see research_graph.py).
+    It uses blocking input() which is incompatible with web deployments.
+    For proper HITL, use LangGraph's interrupt() with a checkpointer."""
     print("\n" + "=" * 60)
     print("HUMAN REVIEW")
     print("=" * 60)

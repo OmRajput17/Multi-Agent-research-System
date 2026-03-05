@@ -21,7 +21,7 @@ async def parallel_search_agent(state: ResearchState) -> ResearchState:
 
     flat = [r for sublist in all_results if isinstance(sublist, list) for r in sublist]
 
-    return {**state, 'search_results': flat}
+    return {'search_results': flat}
 
 
 async def web_search_agent(state: ResearchState) -> ResearchState:
@@ -36,7 +36,7 @@ async def web_search_agent(state: ResearchState) -> ResearchState:
     all_results = await asyncio.gather(*tasks, return_exceptions=True)
     flat = [r for sublist in all_results if isinstance(sublist, list) for r in sublist]
 
-    return {**state, 'search_results': flat}
+    return {'search_results': flat}
 
 async def academic_search_agent(state: ResearchState) -> ResearchState:
     """Only academic tools: arxiv + Semantic Scholar."""
@@ -50,4 +50,4 @@ async def academic_search_agent(state: ResearchState) -> ResearchState:
     all_results = await asyncio.gather(*tasks, return_exceptions=True)
     flat = [r for sublist in all_results if isinstance(sublist, list) for r in sublist]
     
-    return {**state, 'search_results': flat}
+    return {'search_results': flat}

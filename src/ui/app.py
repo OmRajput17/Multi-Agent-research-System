@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import os
 
 st.set_page_config(
     page_title="Research Assistant",
@@ -41,6 +42,7 @@ st.markdown("""
     .badge-academic { background: #e8f5e9; color: #2e7d32; }
     .badge-web { background: #e3f2fd; color: #1565c0; }
     .badge-mixed { background: #fff3e0; color: #e65100; }
+    .badge-general { background: #f3e5f5; color: #6a1b9a; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -48,60 +50,75 @@ st.markdown("""
 st.markdown('<div class="main-header">Research Assistant</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Multi-Agent AI Research Pipeline</div>', unsafe_allow_html=True)
 
-API_URL = "https://omrajput-research-assistant.hf.space"
+API_URL = os.environ.get("API_URL", "http://localhost:8000")
 
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
-for msg in st.session_state.messages:
+
+def render_response(data, msg_index):
+    """Render an assistant response. Used for both history and new messages."""
+    route = data.get("route", "mixed")
+    badge_class = f"badge-{route}"
+    st.markdown(
+        f'<span class="status-badge {badge_class}">{route.upper()} search</span>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown("---")
+    st.markdown(data["report"])
+
+    # Download button only for actual research reports
+    if route != "general":
+        st.download_button(
+            "📥 Download Report",
+            data["report"],
+            file_name=f"research_report_{msg_index}.md",
+            mime="text/markdown",
+            key=f"download_btn_{msg_index}"
+        )
+
+    # Only show fact-check and citations if they have content
+    fact_check = data.get("fact_check", {})
+    citations = data.get("citations", [])
+
+    if fact_check:
+        with st.expander(f"✅ Fact-Check Scores ({len(fact_check)} claims)", expanded=False):
+            for claim, score in fact_check.items():
+                score = float(score)  # ensure numeric
+                if score >= 0.8:
+                    emoji = "🟢"
+                elif score >= 0.6:
+                    emoji = "🟡"
+                else:
+                    emoji = "🔴"
+                st.markdown(f"{emoji} **{score:.0%}** — {claim}")
+
+    if citations:
+        with st.expander(f"📚 Citations ({len(citations)})", expanded=False):
+            for i, url in enumerate(citations, 1):
+                st.markdown(f"**[{i}]** [{url}]({url})")
+
+
+# Display full chat history
+for idx, msg in enumerate(st.session_state.messages):
     with st.chat_message(msg["role"]):
         if msg["role"] == "user":
             st.markdown(msg["content"])
         else:
-            data = msg["data"]
-
-            route = data.get("route", "mixed")
-            badge_class = f"badge-{route}"
-            st.markdown(
-                f'<span class="status-badge {badge_class}">{route.upper()} search</span>',
-                unsafe_allow_html=True
-            )
-
-            st.markdown("---")
-            st.markdown(data["report"])
-
-            st.download_button(
-                "Download Report",
-                data["report"],
-                file_name="research_report.md",
-                mime="text/markdown",
-                key=f"dl_{msg.get('id', 0)}"
-            )
-
-            with st.expander("Fact-Check Scores"):
-                for claim, score in data["fact_check"].items():
-                    if score >= 0.8:
-                        emoji = "🟢"
-                    elif score >= 0.6:
-                        emoji = "🟡"
-                    else:
-                        emoji = "🔴"
-                    st.markdown(f"{emoji} **{score:.0%}** - {claim}")
-
-            with st.expander(f"Citations ({len(data['citations'])})"):
-                for i, url in enumerate(data["citations"], 1):
-                    st.markdown(f"**[{i}]** [{url}]({url})")
+            render_response(msg["data"], idx)
 
 # Chat input
 if query := st.chat_input("Ask a research question..."):
+    # 1. Add user message to history and display it
     st.session_state.messages.append({"role": "user", "content": query})
     with st.chat_message("user"):
         st.markdown(query)
 
+    # 2. Call API and display response
     with st.chat_message("assistant"):
-        with st.spinner("Running research pipeline... This may take 1-2 minutes."):
+        with st.spinner("� Thinking..."):
             try:
                 response = requests.post(
                     f"{API_URL}/research",
@@ -110,47 +127,19 @@ if query := st.chat_input("Ask a research question..."):
                 )
                 data = response.json()
 
-                route = data.get("route", "mixed")
-                badge_class = f"badge-{route}"
-                st.markdown(
-                    f'<span class="status-badge {badge_class}">{route.upper()} search</span>',
-                    unsafe_allow_html=True
-                )
-
-                st.markdown("---")
-                st.markdown(data["report"])
-
-                st.download_button(
-                    "Download Report",
-                    data["report"],
-                    file_name="research_report.md",
-                    mime="text/markdown",
-                    key="dl_latest"
-                )
-
-                with st.expander("Fact-Check Scores"):
-                    for claim, score in data["fact_check"].items():
-                        if score >= 0.8:
-                            emoji = "🟢"
-                        elif score >= 0.6:
-                            emoji = "🟡"
-                        else:
-                            emoji = "🔴"
-                        st.markdown(f"{emoji} **{score:.0%}** - {claim}")
-
-                with st.expander(f"Citations ({len(data['citations'])})"):
-                    for i, url in enumerate(data["citations"], 1):
-                        st.markdown(f"**[{i}]** [{url}]({url})")
-
-                msg_id = len(st.session_state.messages)
+                # Add assistant message to history FIRST
+                msg_index = len(st.session_state.messages)
                 st.session_state.messages.append({
                     "role": "assistant",
                     "content": data["report"],
                     "data": data,
-                    "id": msg_id
                 })
 
+                # Then render it
+                render_response(data, msg_index)
+
             except requests.exceptions.ConnectionError:
-                st.error("Cannot connect to API. Start it with: python -m uvicorn src.api.main:app --reload --port 8000")
+                st.error("❌ Cannot connect to API. Make sure the backend is running.")
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"❌ Error: {e}")
+

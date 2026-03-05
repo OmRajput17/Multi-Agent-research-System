@@ -7,6 +7,7 @@ from src.agents.filter_agent import FilterAgent
 from src.agents.summarizer import SummarizerAgent
 from src.agents.fact_checker import FactCheckerAgent
 from src.agents.report_writer import ReportWriterAgent
+from src.agents.direct_responder import DirectResponderAgent
 
 
 def should_continue(state: ResearchState) -> str:
@@ -18,6 +19,10 @@ def should_continue(state: ResearchState) -> str:
 
     return 'write_report'
 
+def increment_iteration(state: ResearchState):
+    """Increment the loop counter before re-entering the planner."""
+    return {"iteration": state['iteration'] + 1}
+
 def build_graph():
     workflow = StateGraph(ResearchState)
 
@@ -27,6 +32,7 @@ def build_graph():
     summarizer = SummarizerAgent()
     fact_checker = FactCheckerAgent()
     report_writer = ReportWriterAgent()
+    direct_responder = DirectResponderAgent()
 
     ## Adding nodes 
     workflow.add_node("planner", planner.plan)
@@ -37,6 +43,8 @@ def build_graph():
     workflow.add_node("parallel_search", parallel_search_agent)
     workflow.add_node("web_search", web_search_agent)
     workflow.add_node("academic_search", academic_search_agent)
+    workflow.add_node("direct_responder", direct_responder.respond)
+    workflow.add_node("increment_iteration", increment_iteration)
 
     ## Adding Edges
     workflow.set_entry_point("planner")
@@ -45,7 +53,8 @@ def build_graph():
     workflow.add_conditional_edges("planner", route,{
         "academic":"academic_search",
         "web":"web_search",
-        "mixed":"parallel_search"
+        "mixed":"parallel_search",
+        "general":"direct_responder"
     })
 
     ## All search Node -> filter
@@ -61,12 +70,18 @@ def build_graph():
 
     ## fact_checker -> loop or report
     workflow.add_conditional_edges("fact_checker", should_continue,{
-        "planner":"planner",
+        "planner":"increment_iteration",
         "write_report":"report_writer"
     })
 
+    ## increment_iteration -> planner (re-enter the loop)
+    workflow.add_edge("increment_iteration", "planner")
+
     ## report_writer -> END
     workflow.add_edge("report_writer", END)
+    
+    ## direct_responder -> END
+    workflow.add_edge("direct_responder", END)
 
     return workflow.compile()
 
@@ -77,7 +92,7 @@ if __name__ == "__main__":
     import asyncio
     graph = build_graph()
     result = asyncio.run(graph.ainvoke({
-        "query": "What is quantum computing?",
+        "query": "Hello! How are you doing today?",
         "sub_questions": [],
         "search_results": [],
         "filtered_results": [],

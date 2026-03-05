@@ -24,6 +24,10 @@ class FilterAgent:
         query = state['query']
         results = state['search_results']
 
+        if not results:
+            print("No search results to filter.")
+            return {'filtered_results': []}
+
         # Step 1: Format all results as numbered list
         results_text = '\n\n'.join([
             f"[{i+1}] {r['title']}\n{r['content'][:500]}"
@@ -41,19 +45,26 @@ class FilterAgent:
             print(f"Error batch scoring: {e}")
             scores = [0.5] * len(results)  # default all to 0.5
 
-        # Step 3: Filter by threshold
-        scored = []
+        # Step 3: Score all results
+        all_scored = []
         for i, result in enumerate(results):
             score = scores[i] if i < len(scores) else 0.5
-            if score >= 0.6:
-                scored.append({**result, 'score': score})
+            all_scored.append({**result, 'score': score})
 
-        # Step 4: Deduplicate by URL
+        # Step 4: Filter by threshold
+        filtered_above = [r for r in all_scored if r['score'] >= 0.6]
+
+        # Step 5: Fallback — if nothing passes threshold, keep top 3 by score
+        if not filtered_above and all_scored:
+            print("No results above threshold, keeping top 3 by score as fallback.")
+            filtered_above = sorted(all_scored, key=lambda x: x['score'], reverse=True)[:3]
+
+        # Step 6: Deduplicate by URL
         seen = set()
         filtered = []
-        for r in scored:
+        for r in filtered_above:
             if r['url'] not in seen:
                 seen.add(r['url'])
                 filtered.append(r)
 
-        return {**state, 'filtered_results': filtered}
+        return {'filtered_results': filtered}

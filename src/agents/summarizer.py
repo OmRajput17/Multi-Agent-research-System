@@ -7,7 +7,7 @@ class SummarizerAgent:
         self.llm = LLMConfig().get_llm()
         self.prompt = ChatPromptTemplate.from_template(
             """
-                You are a research summarizer. Based on the following soureces, 
+                You are a research summarizer. Based on the following sources, 
                 provide a comprehensive answer to the query.
                 Cite sources inline using [1], [2], etc.
 
@@ -22,6 +22,13 @@ class SummarizerAgent:
         self.chain = self.prompt | self.llm
 
     def summarize(self, state: ResearchState) -> ResearchState:
+        # Guard: handle empty filtered results
+        if not state['filtered_results']:
+            return {
+                'summary': 'No relevant sources were found for this query.',
+                'citations': []
+            }
+
         # Step 1: Format filtered results as numbered context
         context = '\n\n'.join([
             f'[{i+1}] {r["title"]}\n{r["content"][:1500]}'
@@ -38,7 +45,6 @@ class SummarizerAgent:
         citations = list(dict.fromkeys(r['url'] for r in state['filtered_results']))
 
         return {
-            **state,
             'summary': response.content,
             'citations': citations
         }

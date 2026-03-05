@@ -15,11 +15,14 @@ class PlannerAgent:
                 - "academic" → scientific concepts, algorithms, papers, technical mechanisms (e.g., "How does attention work in transformers?")
                 - "web" → current events, tutorials, comparisons, trends, opinions (e.g., "Best AI tools in 2024")
                 - "mixed" → ONLY when the query genuinely needs both academic depth AND current web info (e.g., "Impact of quantum computing on cryptography")
+                - "general" → casual conversation, greetings, small talk, or non-research questions (e.g., "Hello!", "How are you?", "What can you do?")
 
                 Query: {query}
 
                 Return ONLY valid JSON:
                 {{"sub_questions": ["detailed question 1", "detailed question 2", "detailed question 3"], "route": "academic"}}
+                For "general" route, return an empty sub_questions list:
+                {{"sub_questions": [], "route": "general"}}
         """
 
         self.prompt = ChatPromptTemplate.from_template(self.prompt)
@@ -28,9 +31,8 @@ class PlannerAgent:
 
     def plan(self, state: ResearchState):
         result = self.chain.invoke({"query":state['query']})
+        print(f"PLANNER OUTPUT: {result}")
         return {
-            **state,
             "sub_questions": result["sub_questions"],
-            "route":result["route"],
-            "iteration": 0
+            "route": result["route"],
         }

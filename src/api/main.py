@@ -1,11 +1,28 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.graphs.research_graph import build_graph
 import asyncio
 
 app = FastAPI(title = "Multi-Agent Research Assistant")
 
-graph = build_graph()
+# Allow cross-origin requests from any frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Lazy load — build graph only on first request, not at startup
+_graph = None
+
+def get_graph():
+    global _graph
+    if _graph is None:
+        _graph = build_graph()
+    return _graph
 
 class QueryRequest(BaseModel):
     query: str
@@ -34,7 +51,7 @@ async def research(request: QueryRequest):
         "route": "mixed"
     }
 
-    result = await graph.ainvoke(initial_state)
+    result = await get_graph().ainvoke(initial_state)
 
     return {
         "report": result["final_report"],

@@ -14,7 +14,6 @@ class HelperTools:
             api_key=os.getenv("TAVILY_API_KEY")
         )
         self.arxiv_client = arxiv.Client()
-        self.ddgs = DDGS()
 
     def tavily_search(self, query: str, max_results: int = 5) -> List[dict]:
         """Search the web using Tavily API Key"""
@@ -62,7 +61,8 @@ class HelperTools:
         """Search the web using DuckDuckGo Search"""
         try:
             results = []
-            for result in self.ddgs.text(
+            ddgs = DDGS()
+            for result in ddgs.text(
                 query,
                 max_results=max_results
             ):

@@ -133,7 +133,7 @@ if query := st.chat_input("Ask a research question..."):
                         st.warning("⏳ **Rate limit reached.** The free Groq tier allows 100K tokens/day. Please wait a few minutes and try again.")
                     else:
                         st.error(f"❌ {error_data.get('message', 'Something went wrong')}")
-                    return
+                    st.stop()
 
                 data = response.json()
 
